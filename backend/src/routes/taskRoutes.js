@@ -1,10 +1,10 @@
 const express = require("express");
 const taskController = require("../controllers/taskController");
-
+const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Middleware de autenticación
-router.use(AuthMiddleware);
+router.use(authMiddleware);
 
 // Crear una tarea
 router.post("/tasks", taskController.createTaskHandler);
