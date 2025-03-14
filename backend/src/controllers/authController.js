@@ -1,30 +1,34 @@
-const { register, findByUsername } = require("../models/User");
+const { register, findByEmail } = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // Registrar un nuevo usuario
-const registerUser = async (req, res) => {
-  const { username, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+const registerUser = (req, res) => {
+  const { username, email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-  register(username, hashedPassword, (err) => {
+  register(username, email, hashedPassword, (err) => {
     if (err) {
-      return res.status(400).json({ error: "El usuario ya existe" });
+      return res
+        .status(400)
+        .json({ error: "El correo electrónico ya está en uso" });
     }
     res.status(201).json({ message: "Usuario registrado exitosamente" });
   });
 };
 
 // Iniciar sesión
-const loginUser = async (req, res) => {
-  const { username, password } = req.body;
+const loginUser = (req, res) => {
+  const { email, password } = req.body;
 
-  findByUsername(username, async (err, user) => {
+  findByEmail(email, (err, user) => {
     if (err || !user) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
+      return res
+        .status(400)
+        .json({ error: "Correo electrónico no encontrado" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Contraseña incorrecta" });
     }
