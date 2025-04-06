@@ -1,14 +1,19 @@
-const http = require("http");
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const authRoutes = require("./routes/authRoutes");
 
-const hostname = "127.0.0.1";
-const port = 3000;
+const app = express();
+const PORT = 5000;
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end("Hello World\n");
-});
+// Middlewares
+app.use(cors()); // Permitir solicitudes desde el frontend
+app.use(bodyParser.json()); // Parsear JSON
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+// Rutas
+app.use("/api/auth", authRoutes);
+
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
 });
