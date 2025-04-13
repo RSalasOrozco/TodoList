@@ -1,19 +1,27 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { LogIn, LogOut, Menu, X } from "lucide-react";
+import { LogIn, LogOut, Menu, X, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const Navbar = () => {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const router = useRouter();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
-  // Verificar autenticación al cargar
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+
+    // Redirigir si está logueado y en página de login/register
+    if (
+      !!token &&
+      (window.location.pathname === "/login" ||
+        window.location.pathname === "/register")
+    ) {
+      router.push("/dashboard");
+    }
   }, []);
 
   const handleAuthClick = () => {
@@ -21,90 +29,182 @@ const Navbar = () => {
       // Logout
       localStorage.removeItem("token");
       setIsLoggedIn(false);
-      router.push("/login");
+      router.push("/");
     } else {
       // Login
       router.push("/login");
     }
-    setMenuOpen(false);
+    closeAllMenus();
   };
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
+    setProfileMenuOpen(false);
+  };
+
+  const toggleProfileMenu = () => {
+    setProfileMenuOpen((prev) => !prev);
+    setMenuOpen(false);
+  };
+
+  const closeAllMenus = () => {
+    setMenuOpen(false);
+    setProfileMenuOpen(false);
   };
 
   return (
-    <nav className="w-full bg-gray-950 backdrop-blur-md shadow-md px-4 py-3 flex items-center justify-between relative">
-      <div className="text-xl font-bold text-white">
-        <Link href="/">LOGO TL</Link>
-      </div>
+    <header className="bg-black">
+      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <div className="flex-1 md:flex md:items-center md:gap-12">
+            <Link
+              href="/"
+              className="block text-white font-bold text-xl"
+              onClick={closeAllMenus}
+            >
+              LOGO TL
+            </Link>
+          </div>
 
-      {/* Menú Hamburguesa */}
-      <div className="md:hidden">
-        <button onClick={toggleMenu} className="text-white">
-          {menuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+          <div className="md:flex md:items-center md:gap-12">
+            <nav aria-label="Global" className="hidden md:block">
+              <ul className="flex items-center gap-6 text-sm">
+                <li>
+                  <Link
+                    href="/"
+                    className="text-white transition hover:text-gray-300"
+                    onClick={closeAllMenus}
+                  >
+                    Inicio
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/"
+                    className="text-white transition hover:text-gray-300"
+                    onClick={closeAllMenus}
+                  >
+                    Nosotros
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/"
+                    className="text-white transition hover:text-gray-300"
+                    onClick={closeAllMenus}
+                  >
+                    Contacto
+                  </Link>
+                </li>
+              </ul>
+            </nav>
 
-      {/* Links - Desktop */}
-      <div className="hidden md:flex items-center gap-6 text-white">
-        <Link href="/">Inicio</Link>
-        <Link href="/">Nosotros</Link>
-        <Link href="/">Contacto</Link>
-      </div>
+            <div className="flex items-center gap-4">
+              {isLoggedIn ? (
+                <div className="relative hidden md:block">
+                  <button
+                    type="button"
+                    onClick={toggleProfileMenu}
+                    className="overflow-hidden rounded-full border border-white shadow-inner bg-gray-700 flex items-center justify-center size-10"
+                  >
+                    <span className="sr-only">Menú de usuario</span>
+                    <User className="size-6 text-white" />
+                  </button>
 
-      {/* Botón Login/Logout */}
-      <div className="hidden md:flex">
-        <button
-          onClick={handleAuthClick}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-        >
-          {isLoggedIn ? (
-            <>
-              <LogOut size={18} />
-              LOGOUT
-            </>
-          ) : (
-            <>
-              <LogIn size={18} />
-              LOGIN
-            </>
-          )}
-        </button>
-      </div>
+                  {profileMenuOpen && (
+                    <div
+                      className="absolute end-0 z-10 mt-0.5 w-56 rounded-md border border-gray-700 bg-black shadow-lg"
+                      role="menu"
+                    >
+                      <div className="p-2">
+                        <Link
+                          href="/dashboard"
+                          className="block rounded-lg px-4 py-2 text-sm text-white hover:bg-gray-800"
+                          role="menuitem"
+                          onClick={closeAllMenus}
+                        >
+                          Mi perfil
+                        </Link>
+                        <button
+                          onClick={handleAuthClick}
+                          className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-white hover:bg-gray-800"
+                          role="menuitem"
+                        >
+                          <LogOut className="size-4" />
+                          Cerrar sesión
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={handleAuthClick}
+                  className="hidden md:flex items-center gap-2 rounded-sm bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-gray-200"
+                >
+                  <LogIn className="size-4" />
+                  Iniciar sesión
+                </button>
+              )}
 
-      {/* Menú desplegable - Mobile */}
-      {menuOpen && (
-        <div className="absolute top-full left-0 w-full bg-gray-950 text-white flex flex-col items-start p-4 gap-4 md:hidden z-10 shadow-lg rounded-md">
-          <Link href="/" onClick={() => setMenuOpen(false)}>
-            Inicio
-          </Link>
-          <Link href="/" onClick={() => setMenuOpen(false)}>
-            Nosotros
-          </Link>
-          <Link href="/" onClick={() => setMenuOpen(false)}>
-            Contacto
-          </Link>
-
-          <button
-            onClick={handleAuthClick}
-            className="flex items-center gap-2 text-black bg-white px-4 py-2 rounded hover:bg-gray-500 transition w-full"
-          >
-            {isLoggedIn ? (
-              <>
-                <LogOut size={18} />
-                LOGOUT
-              </>
-            ) : (
-              <>
-                <LogIn size={18} />
-                LOGIN
-              </>
-            )}
-          </button>
+              <div className="block md:hidden">
+                <button
+                  onClick={toggleMenu}
+                  className="rounded-sm bg-black p-2 text-white transition hover:text-gray-300 border border-white"
+                >
+                  {menuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
-    </nav>
+
+        {/* Menú móvil */}
+        {menuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-700">
+            <div className="space-y-1 px-2">
+              <Link
+                href="/"
+                onClick={closeAllMenus}
+                className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-gray-800"
+              >
+                Inicio
+              </Link>
+              <Link
+                href="/"
+                onClick={closeAllMenus}
+                className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-gray-800"
+              >
+                Nosotros
+              </Link>
+              <Link
+                href="/"
+                onClick={closeAllMenus}
+                className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-gray-800"
+              >
+                Contacto
+              </Link>
+              <button
+                onClick={handleAuthClick}
+                className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-left text-white hover:bg-gray-800"
+              >
+                {isLoggedIn ? (
+                  <>
+                    <LogOut className="size-4" />
+                    Cerrar sesión
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="size-4" />
+                    Iniciar sesión
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
   );
 };
 

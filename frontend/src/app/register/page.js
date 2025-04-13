@@ -1,37 +1,45 @@
 "use client";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Verificar si ya está logueado
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Mostrar mensaje y redirigir
+      alert("Ya estás logueado. Serás redirigido al dashboard.");
+      router.push("/dashboard");
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
     const formData = new FormData(e.target);
-    const userData = {
-      name: formData.get("name"), // ✅ Añadimos el campo name
-      email: formData.get("email"),
-      password: formData.get("password")
-    };
 
     try {
       const res = await fetch("http://localhost:3000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData)
+        body: JSON.stringify({
+          name: formData.get("name"),
+          email: formData.get("email"),
+          password: formData.get("password")
+        })
       });
 
-      if (!res.ok) {
+      if (res.ok) {
+        alert("Registro exitoso. Por favor inicia sesión.");
+        router.push("/login");
+      } else {
         const errorData = await res.json();
-        throw new Error(errorData.error || "Registration failed");
+        alert(errorData.error || "Error en el registro");
       }
-
-      router.push("/login");
     } catch (err) {
-      setError(err.message);
+      console.error("Register error:", err);
+      alert("Error al procesar el registro");
     }
   };
 
@@ -39,40 +47,47 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-96"
+        className="bg-black p-8 rounded shadow-md w-96 text-white"
       >
-        <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center text-white">
+          Registro
+        </h1>
 
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-
-        {/* Campo Name añadido */}
+        {/* Campo Nombre (solo para registro) */}
         <input
           name="name"
           type="text"
-          placeholder="Full Name"
+          placeholder="Nombre completo"
           required
-          className="w-full p-2 mb-4 border rounded"
+          className="w-full p-2 mb-4 border rounded text-white"
         />
+
         <input
           name="email"
           type="email"
           placeholder="Email"
           required
-          className="w-full p-2 mb-4 border rounded"
+          className="w-full p-2 mb-4 border rounded text-white"
         />
         <input
           name="password"
           type="password"
-          placeholder="Password"
+          placeholder="Contraseña"
           required
-          className="w-full p-2 mb-4 border rounded"
+          className="w-full p-2 mb-4 border rounded text-white"
         />
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          className="w-full bg-white text-black p-2 rounded hover:bg-gray-200 font-medium"
         >
-          Register
+          Registrarse
         </button>
+        <p className="mt-4 text-center text-white">
+          ¿Ya tienes cuenta?{" "}
+          <a href="/login" className="text-white hover:underline">
+            Inicia sesión
+          </a>
+        </p>
       </form>
     </div>
   );
