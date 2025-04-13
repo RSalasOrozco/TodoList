@@ -1,16 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LogIn, LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
+  // Verificar autenticación al cargar
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   const handleAuthClick = () => {
-    setIsLoggedIn((prev) => !prev);
-    setMenuOpen(false); // cerrar menú si se hace login/logout
+    if (isLoggedIn) {
+      // Logout
+      localStorage.removeItem("token");
+      setIsLoggedIn(false);
+      router.push("/login");
+    } else {
+      // Login
+      router.push("/login");
+    }
+    setMenuOpen(false);
   };
 
   const toggleMenu = () => {
@@ -72,7 +88,7 @@ const Navbar = () => {
 
           <button
             onClick={handleAuthClick}
-            className="flex items-center gap-2 bg-blue-500 px-4 py-2 rounded hover:bg-blue-600 transition w-full"
+            className="flex items-center gap-2 text-black bg-white px-4 py-2 rounded hover:bg-gray-500 transition w-full"
           >
             {isLoggedIn ? (
               <>
